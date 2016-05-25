@@ -2,26 +2,26 @@
 
 An STL exporter for Unity.
 
-**pb_Stl** is the exportor used in ProBuilder to save [STL](https://en.wikipedia.org/wiki/STL_(file_format) model files.
+**pb_Stl** is the exporter used in ProBuilder to save [STL](https://en.wikipedia.org/wiki/STL_(file_format) model files.
 
-### Quick Start
+## Quick Start
 
 1. Select a `GameObject` in the Scene View with a `MeshFilter` and valid `Mesh`.
 1. In the file menu,  `Edit > Export > STL (Ascii)`.
 1. View your shiny new STL file.
 
-### Features
+## Features
 
 - Export binary & ascii STL files.
 - Option to convert from left to right handed coordinates (on by default, as per STL spec).
 
-### Planned Improvements
+## Planned Improvements
 
 - Import Ascii / Binary.
 - Automatic merging of multiple meshes
 - Options to swap model axis.
 
-### Troubleshooting
+## Troubleshooting
 
 #### Model is sideways / horizontal / rotated
 
