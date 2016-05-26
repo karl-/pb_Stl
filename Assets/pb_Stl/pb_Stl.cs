@@ -2,6 +2,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using System.Linq;
 
 namespace Parabox.STL
 {
@@ -19,15 +20,25 @@ namespace Parabox.STL
 	 */
 	public static class pb_Stl
 	{
-		// String formatting for float types.
-		const string FLT_FMT = "F";
-
 		/**
-		 *	Write a Unity Mesh values to an STL file.
-		 *	Mesh mesh - The mesh file to write.
-		 *	FileType type - How to format the file (in ASCII or binary).
+		 * Write a mesh file to STL.
 		 */
 		public static bool WriteFile(string path, Mesh mesh, FileType type = FileType.Ascii, bool convertToRightHandedCoordinates = true)
+		{
+			return WriteFile(path, new Mesh[] { mesh }, type, convertToRightHandedCoordinates);
+		}
+
+		/**
+		 *	Write a collection of mesh assets to an STL file.
+		 *	No transformations are performed on meshes in this method.
+		 *	Eg, if you want to export a set of a meshes in a transform
+		 *	hierarchy the meshes should be transformed prior to this call.
+		 *
+		 *	string path - Where to write the file.
+		 *	IList<Mesh> meshes - The mesh assets to write.
+		 *	FileType type - How to format the file (in ASCII or binary).
+		 */
+		public static bool WriteFile(string path, IList<Mesh> meshes, FileType type = FileType.Ascii, bool convertToRightHandedCoordinates = true)
 		{
 			try
 			{
@@ -35,12 +46,6 @@ namespace Parabox.STL
 				{
 					case FileType.Binary:
 					{
-						Vector3[] v = convertToRightHandedCoordinates ? Left2Right(mesh.vertices) : mesh.vertices;
-						Vector3[] n = convertToRightHandedCoordinates ? Left2Right(mesh.normals) : mesh.normals;
-						int[] t = mesh.triangles;
-						if(convertToRightHandedCoordinates) System.Array.Reverse(t);
-						int triangleCount = t.Length;
-
 						// http://paulbourke.net/dataformats/stl/
 						// http://www.fabbers.com/tech/STL_Format
 						using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create), new ASCIIEncoding()))
@@ -48,40 +53,52 @@ namespace Parabox.STL
 							// 80 byte header
 							writer.Write(new byte[80]);
 
+							uint totalTriangleCount = (uint) (meshes.Sum(x => x.triangles.Length) / 3);
+
 							// unsigned long facet count (4 bytes)
-							writer.Write( (uint)(triangleCount / 3) );
+							writer.Write( totalTriangleCount );
 
-							for(int i = 0; i < triangleCount; i += 3)
+							foreach(Mesh mesh in meshes)
 							{
-								int a = t[i], b = t[i+1], c = t[i+2];
+								Vector3[] v = convertToRightHandedCoordinates ? Left2Right(mesh.vertices) : mesh.vertices;
+								Vector3[] n = convertToRightHandedCoordinates ? Left2Right(mesh.normals) : mesh.normals;
+								int[] t = mesh.triangles;
+								int triangleCount = t.Length;
+								if(convertToRightHandedCoordinates)
+									System.Array.Reverse(t);
 
-								Vector3 avg = AvgNrm(n[a], n[b], n[c]);
+								for(int i = 0; i < triangleCount; i += 3)
+								{
+									int a = t[i], b = t[i+1], c = t[i+2];
 
-								writer.Write(avg.x);
-								writer.Write(avg.y);
-								writer.Write(avg.z);
+									Vector3 avg = AvgNrm(n[a], n[b], n[c]);
 
-								writer.Write(v[a].x);
-								writer.Write(v[a].y);
-								writer.Write(v[a].z);
+									writer.Write(avg.x);
+									writer.Write(avg.y);
+									writer.Write(avg.z);
 
-								writer.Write(v[b].x);
-								writer.Write(v[b].y);
-								writer.Write(v[b].z);
+									writer.Write(v[a].x);
+									writer.Write(v[a].y);
+									writer.Write(v[a].z);
 
-								writer.Write(v[c].x);
-								writer.Write(v[c].y);
-								writer.Write(v[c].z);
+									writer.Write(v[b].x);
+									writer.Write(v[b].y);
+									writer.Write(v[b].z);
 
-								// specification says attribute byte count should be set to 0.
-								writer.Write( (ushort)0 );
+									writer.Write(v[c].x);
+									writer.Write(v[c].y);
+									writer.Write(v[c].z);
+
+									// specification says attribute byte count should be set to 0.
+									writer.Write( (ushort)0 );
+								}
 							}
 						}
 					}
 					break;
 
 					default:
-						string model = WriteString(mesh);
+						string model = WriteString(meshes);
 						File.WriteAllText(path, model);
 						break;
 				}
@@ -97,40 +114,51 @@ namespace Parabox.STL
 
 		/**
 		 *	Write a Unity mesh to an ASCII STL string.
-		 *	Mesh mesh - The mesh file to write.
 		 */
 		public static string WriteString(Mesh mesh, bool convertToRightHandedCoordinates = true)
 		{
+			return WriteString(new Mesh[] { mesh }, convertToRightHandedCoordinates);
+		}
+
+		/**
+		 * Write a set of meshes to an ASCII string in STL format.
+		 */
+		public static string WriteString(IList<Mesh> meshes, bool convertToRightHandedCoordinates = true)
+		{
 			StringBuilder sb = new StringBuilder();
 
-			Vector3[] v = convertToRightHandedCoordinates ? Left2Right(mesh.vertices) : mesh.vertices;
-			Vector3[] n = convertToRightHandedCoordinates ? Left2Right(mesh.normals) : mesh.normals;
-			int[] t = mesh.triangles;
-			if(convertToRightHandedCoordinates) System.Array.Reverse(t);
-			int triLen = t.Length;
-			string name = mesh.name;
+			string name = meshes.Count == 1 ? meshes[0].name : "Composite Mesh";
 
 			sb.AppendLine(string.Format("solid {0}", name));
 
-			for(int i = 0; i < triLen; i+=3)
+			foreach(Mesh mesh in meshes)
 			{
-				int a = t[i];
-				int b = t[i+1];
-				int c = t[i+2];
+				Vector3[] v = convertToRightHandedCoordinates ? Left2Right(mesh.vertices) : mesh.vertices;
+				Vector3[] n = convertToRightHandedCoordinates ? Left2Right(mesh.normals) : mesh.normals;
+				int[] t = mesh.triangles;
+				if(convertToRightHandedCoordinates) System.Array.Reverse(t);
+				int triLen = t.Length;
 
-				Vector3 nrm = AvgNrm(n[a], n[b], n[c]);
+				for(int i = 0; i < triLen; i+=3)
+				{
+					int a = t[i];
+					int b = t[i+1];
+					int c = t[i+2];
 
-				sb.AppendLine(string.Format("facet normal {0} {1} {2}", nrm.x, nrm.y, nrm.z));
+					Vector3 nrm = AvgNrm(n[a], n[b], n[c]);
 
-				sb.AppendLine("outer loop");
+					sb.AppendLine(string.Format("facet normal {0} {1} {2}", nrm.x, nrm.y, nrm.z));
 
-				sb.AppendLine(string.Format("\tvertex {0} {1} {2}", v[a].x, v[a].y, v[a].z));
-				sb.AppendLine(string.Format("\tvertex {0} {1} {2}", v[b].x, v[b].y, v[b].z));
-				sb.AppendLine(string.Format("\tvertex {0} {1} {2}", v[c].x, v[c].y, v[c].z));
+					sb.AppendLine("outer loop");
 
-				sb.AppendLine("endloop");
+					sb.AppendLine(string.Format("\tvertex {0} {1} {2}", v[a].x, v[a].y, v[a].z));
+					sb.AppendLine(string.Format("\tvertex {0} {1} {2}", v[b].x, v[b].y, v[b].z));
+					sb.AppendLine(string.Format("\tvertex {0} {1} {2}", v[c].x, v[c].y, v[c].z));
 
-				sb.AppendLine("endfacet");
+					sb.AppendLine("endloop");
+
+					sb.AppendLine("endfacet");
+				}
 			}
 
 			sb.AppendLine(string.Format("endsolid {0}", name));
@@ -154,7 +182,7 @@ namespace Parabox.STL
 		 */
 		private static Vector3 AvgNrm(Vector3 a, Vector3 b, Vector3 c)
 		{
-			return new Vector3( 
+			return new Vector3(
 				(a.x + b.x + c.x) / 3f,
 				(a.y + b.y + c.y) / 3f,
 				(a.z + b.z + c.z) / 3f );
