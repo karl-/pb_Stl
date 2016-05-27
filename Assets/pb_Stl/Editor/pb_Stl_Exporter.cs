@@ -20,55 +20,57 @@ namespace Parabox.STL
 		[MenuItem("Assets/Export/STL (Ascii) &d", false)]
 		static void MenuExportAscii()
 		{
-			ExportStl(FileType.Ascii);
+			ExportWithFileDialog(Selection.gameObjects, FileType.Ascii);
 		}
 
 		[MenuItem("Assets/Export/STL (Binary)", false)]
 		static void MenuExportBinary()
 		{
-			ExportStl(FileType.Binary);
+			ExportWithFileDialog(Selection.gameObjects, FileType.Binary);
 		}
 
-		public static void ExportStl(FileType type)
+		public static void ExportWithFileDialog(GameObject[] gameObjects, FileType type)
 		{
-			Mesh[] meshes = CreateWorldSpaceMeshesWithTransforms(Selection.transforms);
+			string path = EditorUtility.SaveFilePanel("Save Mesh to STL", "", "Mesh", "stl");
+
+			if( Export(path, gameObjects, type) )
+			{
+				string full = path.Replace("\\", "/");
+
+				// if the file was saved in project, ping it
+				if(full.Contains(Application.dataPath))
+				{
+					string relative = full.Replace(Application.dataPath, "Assets");
+					Object o = AssetDatabase.LoadAssetAtPath<Object>(relative);
+					if(o != null)
+						EditorGUIUtility.PingObject(o);
+					AssetDatabase.Refresh();
+				}
+			}
+		}
+
+		public static bool Export(string path, GameObject[] gameObjects, FileType type)
+		{
+			Mesh[] meshes = CreateWorldSpaceMeshesWithTransforms(gameObjects.Select(x => x.transform).ToArray());
 
 			if(meshes != null && meshes.Length > 0)
 			{
-				string path = EditorUtility.SaveFilePanel("Save Mesh to STL", "", "Mesh", "stl");
-
 				if(!string.IsNullOrEmpty(path))
-				{
-					if( pb_Stl.WriteFile(path, meshes, type) )
-					{
-						string full = path.Replace("\\", "/");
-
-						// if the file was saved in project, ping it
-						if(full.Contains(Application.dataPath))
-						{
-							string relative = full.Replace(Application.dataPath, "Assets");
-
-							Object o = AssetDatabase.LoadAssetAtPath<Object>(relative);
-
-							if(o != null)
-								EditorGUIUtility.PingObject(o);
-
-							AssetDatabase.Refresh();
-
-						}
-					}
-				}
+					return pb_Stl.WriteFile(path, meshes, type);
 				else
-				{
 					UnityEngine.Debug.LogWarning("Invalid file path, aborting STL export.");
-				}
 			}
+			else
+			{
+				UnityEngine.Debug.LogWarning("No meshes selected.");
+			}
+			return false;
 		}
 
 		/**
 		 * Extracts a list of mesh values with their relative transformations intact.
 		 */
-		private static Mesh[] CreateWorldSpaceMeshesWithTransforms(Transform[] transforms)
+		private static Mesh[] CreateWorldSpaceMeshesWithTransforms(IList<Transform> transforms)
 		{
 			if(transforms == null)
 				return null;
@@ -76,12 +78,13 @@ namespace Parabox.STL
 			// move root node to center of selection
 			Vector3 p = Vector3.zero;
 
-			for(int i = 0; i < transforms.Length; i++)
+			for(int i = 0; i < transforms.Count; i++)
 				p += transforms[i].position;
+			Vector3 mesh_center = p / (float) transforms.Count;
 
 			GameObject root = new GameObject();
 			root.name = "ROOT";
-			root.transform.position = p / (float) transforms.Length;
+			root.transform.position = mesh_center;
 
 			// copy all transforms to new root gameobject
 			foreach(Transform t in transforms)
@@ -102,13 +105,16 @@ namespace Parabox.STL
 
 			for(int i = 0; i < meshCount; i++)
 			{
-				Matrix4x4 l2w = mfs[i].transform.localToWorldMatrix;
+				Transform t = mfs[i].transform;
 
 				Vector3[] v = mfs[i].sharedMesh.vertices;
 				Vector3[] n = mfs[i].sharedMesh.normals;
 
-				v[i] = l2w.MultiplyPoint3x4(v[i]);
-				n[i] = l2w.MultiplyPoint3x4(n[i]);
+				for(int it = 0; it < v.Length; it++)
+				{
+					v[it] = t.TransformPoint(v[it]);
+					n[it] = t.TransformDirection(n[it]);
+				}
 
 				Mesh m = new Mesh();
 

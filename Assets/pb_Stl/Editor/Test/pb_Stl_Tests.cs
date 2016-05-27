@@ -32,35 +32,36 @@ public class pb_Stl_Tests
 		Directory.Delete(TEMP_FILE_DIR, true);
 	}
 
+	[Test]
+	public void TestExportMultiple()
+	{
+		GameObject a = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		GameObject b = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+		a.transform.position = Vector3.right;
+		b.transform.position = new Vector3(3f, 5f, 2.4f);
+		b.transform.localRotation = Quaternion.Euler( new Vector3(45f, 45f, 10f) );
+
+		if(!Directory.Exists(TEMP_FILE_DIR))
+			Directory.CreateDirectory(TEMP_FILE_DIR);
+
+		string temp_model_path = string.Format("{0}/multiple.stl", TEMP_FILE_DIR);
+		pb_Stl_Exporter.Export(temp_model_path, new GameObject[] {a, b}, FileType.Binary );
+
+		Assert.IsTrue(CompareFiles(string.Format("{0}/CompositeCubes_BINARY.stl", TEST_MODELS), temp_model_path));
+
+		GameObject.DestroyImmediate(a);
+		GameObject.DestroyImmediate(b);
+
+		Directory.Delete(TEMP_FILE_DIR, true);
+	}
+
 	private void DoVerifyWriteBinary(string expected_path, GameObject go)
 	{
 		string temp_model_path = string.Format("{0}/binary_file.stl", TEMP_FILE_DIR);
-		Assert.AreEqual(true, pb_Stl.WriteFile(temp_model_path, go.GetComponent<MeshFilter>().sharedMesh, FileType.Binary));
 
-		// http://stackoverflow.com/questions/968935/compare-binary-files-in-c-sharp
-		FileInfo a = new FileInfo(temp_model_path);
-		FileInfo b = new FileInfo(expected_path);
-
-		Assert.AreEqual(a.Length, b.Length);
-
-		bool match = true;
-
-		using(FileStream f0 = a.OpenRead())
-		using(FileStream f1 = b.OpenRead())
-		using(BufferedStream bs0 = new BufferedStream(f0))
-		using(BufferedStream bs1 = new BufferedStream(f1))
-		{
-			for(long i = 0; i < a.Length; i++)
-			{
-				if(bs0.ReadByte() != bs1.ReadByte())
-				{
-					match = false;
-					break;
-				}
-			}
-		}
-
-		Assert.AreEqual(true, match);
+		Assert.IsTrue(pb_Stl.WriteFile(temp_model_path, go.GetComponent<MeshFilter>().sharedMesh, FileType.Binary));
+		Assert.IsTrue(CompareFiles(temp_model_path, expected_path));
 
 		GameObject.DestroyImmediate(go);
 	}
@@ -75,5 +76,34 @@ public class pb_Stl_Tests
 		Assert.AreNotEqual(expected, "");
 		Assert.AreEqual(ascii, expected);
 		GameObject.DestroyImmediate(go);
+	}
+
+	private bool CompareFiles(string left, string right)
+	{
+		if(left == null || right == null)
+			return false;
+
+		// http://stackoverflow.com/questions/968935/compare-binary-files-in-c-sharp
+		FileInfo a = new FileInfo(left);
+		FileInfo b = new FileInfo(right);
+
+		if(a.Length != b.Length)
+			return false;
+
+		using(FileStream f0 = a.OpenRead())
+		using(FileStream f1 = b.OpenRead())
+		using(BufferedStream bs0 = new BufferedStream(f0))
+		using(BufferedStream bs1 = new BufferedStream(f1))
+		{
+			for(long i = 0; i < a.Length; i++)
+			{
+				if(bs0.ReadByte() != bs1.ReadByte())
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 }
