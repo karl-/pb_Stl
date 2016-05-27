@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEditor;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -8,47 +7,11 @@ namespace Parabox.STL
 	/**
 	 *	Provides menu items for writing STL files from a scene selection.
 	 */
-	public class pb_Stl_Exporter : Editor
+	public static class pb_Stl_Exporter
 	{
-		[MenuItem("Assets/Export/STL (Ascii)", true)]
-		[MenuItem("Assets/Export/STL (Binary)", true)]
-		static bool VerifyExport()
-		{
-			return Selection.transforms.SelectMany(x => x.GetComponentsInChildren<MeshFilter>()).FirstOrDefault(y => y.sharedMesh != null) != null;
-		}
-
-		[MenuItem("Assets/Export/STL (Ascii) &d", false)]
-		static void MenuExportAscii()
-		{
-			ExportWithFileDialog(Selection.gameObjects, FileType.Ascii);
-		}
-
-		[MenuItem("Assets/Export/STL (Binary)", false)]
-		static void MenuExportBinary()
-		{
-			ExportWithFileDialog(Selection.gameObjects, FileType.Binary);
-		}
-
-		public static void ExportWithFileDialog(GameObject[] gameObjects, FileType type)
-		{
-			string path = EditorUtility.SaveFilePanel("Save Mesh to STL", "", "Mesh", "stl");
-
-			if( Export(path, gameObjects, type) )
-			{
-				string full = path.Replace("\\", "/");
-
-				// if the file was saved in project, ping it
-				if(full.Contains(Application.dataPath))
-				{
-					string relative = full.Replace(Application.dataPath, "Assets");
-					Object o = AssetDatabase.LoadAssetAtPath<Object>(relative);
-					if(o != null)
-						EditorGUIUtility.PingObject(o);
-					AssetDatabase.Refresh();
-				}
-			}
-		}
-
+		/**
+		 * Export a hierarchy of GameObjects to path with file type.
+		 */
 		public static bool Export(string path, GameObject[] gameObjects, FileType type)
 		{
 			Mesh[] meshes = CreateWorldSpaceMeshesWithTransforms(gameObjects.Select(x => x.transform).ToArray());
@@ -57,13 +20,8 @@ namespace Parabox.STL
 			{
 				if(!string.IsNullOrEmpty(path))
 					return pb_Stl.WriteFile(path, meshes, type);
-				else
-					UnityEngine.Debug.LogWarning("Invalid file path, aborting STL export.");
 			}
-			else
-			{
-				UnityEngine.Debug.LogWarning("No meshes selected.");
-			}
+
 			return false;
 		}
 
@@ -72,7 +30,7 @@ namespace Parabox.STL
 		 */
 		private static Mesh[] CreateWorldSpaceMeshesWithTransforms(IList<Transform> transforms)
 		{
-			if(transforms == null)
+			if(transforms == null || transforms.Count < 1)
 				return null;
 
 			// move root node to center of selection
