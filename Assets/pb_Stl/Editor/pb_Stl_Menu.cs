@@ -17,13 +17,13 @@ namespace Parabox.STL
 			return Selection.transforms.SelectMany(x => x.GetComponentsInChildren<MeshFilter>()).FirstOrDefault(y => y.sharedMesh != null) != null;
 		}
 
-		[MenuItem("Assets/Export/STL (Ascii) &d", false)]
+		[MenuItem("Assets/Export Model/STL (Ascii)", false, 30)]
 		static void MenuExportAscii()
 		{
 			ExportWithFileDialog(Selection.gameObjects, FileType.Ascii);
 		}
 
-		[MenuItem("Assets/Export/STL (Binary)", false)]
+		[MenuItem("Assets/Export Model/STL (Binary)", false, 30)]
 		static void MenuExportBinary()
 		{
 			ExportWithFileDialog(Selection.gameObjects, FileType.Binary);
