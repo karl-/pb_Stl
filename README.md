@@ -1,8 +1,8 @@
 # pb_Stl
 
-An STL exporter for Unity.
+An STL importer/exporter for Unity.
 
-**pb_Stl** is the exporter used in ProBuilder to save [STL](https://en.wikipedia.org/wiki/STL_(file_format) model files.
+**pb_Stl** is the exporter used in ProBuilder to save [STL](http://paulbourke.net/dataformats/stl/) model files.
 
 ## Quick Start
 
