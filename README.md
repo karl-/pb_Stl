@@ -12,14 +12,14 @@ An STL exporter for Unity.
 
 ## Features
 
-- Export binary & ascii STL files.
+- Export and import Binary & ASCII STL files.
 - Option to convert from left to right handed coordinates (on by default, as per STL spec).
+- Automatic merging of multiple selected meshes, including relative transformations.
+- Import models with vertex counts larger than Unity max by automatically splitting into multiple meshes.
 
 ## Planned Improvements
 
-- Import Ascii / Binary.
-- Automatic merging of multiple meshes
-- Options to swap model axis.
+- Options to swap model axis on import/export.
 
 ## Troubleshooting
 
