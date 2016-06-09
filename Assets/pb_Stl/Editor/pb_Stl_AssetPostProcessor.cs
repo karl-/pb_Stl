@@ -20,8 +20,48 @@ namespace Parabox.STL
 				if(meshes == null)
 					continue;
 
+				GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				Material defaultDiffuse = cube.GetComponent<MeshRenderer>().sharedMaterial;
+				GameObject.DestroyImmediate(cube);
+
+				string prefab_path = string.Format("{0}/{1}.prefab", dir, name);
+
+				GameObject prefab_source = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
+				GameObject prefab = new GameObject();
+				prefab.name = name;
+				if(prefab_source == null)
+					prefab_source = PrefabUtility.CreatePrefab(prefab_path, prefab);
+				GameObject.DestroyImmediate(prefab);
+
+				Object[] children = AssetDatabase.LoadAllAssetsAtPath(prefab_path);
+
+				for(int i = 0; i < children.Length; i++)
+				{
+					if(AssetDatabase.IsSubAsset(children[i]))
+						GameObject.DestroyImmediate(children[i], true);
+				}
+
 				for(int i = 0; i < meshes.Length; i++)
-					AssetDatabase.CreateAsset(meshes[i], string.Format("{0}/{1}{2}.asset", dir, name, i));
+					AssetDatabase.AddObjectToAsset(meshes[i], prefab_source);
+
+				children = AssetDatabase.LoadAllAssetsAtPath(prefab_path);
+				GameObject render = new GameObject();
+
+				for(int i = 0; i < children.Length; i++)
+				{
+					Mesh m = children[i] as Mesh;
+					if(m == null) continue;
+					GameObject child = new GameObject();
+					child.name = string.Format("{0} ({1})", name, i);
+					m.name = child.name;
+					child.AddComponent<MeshFilter>().sharedMesh = m;
+					child.AddComponent<MeshRenderer>().sharedMaterial = defaultDiffuse;
+					child.transform.SetParent(render.transform, false);
+				}
+
+				PrefabUtility.ReplacePrefab(render, prefab_source, ReplacePrefabOptions.ReplaceNameBased);
+
+				GameObject.DestroyImmediate(render);
 			}
 		}
 

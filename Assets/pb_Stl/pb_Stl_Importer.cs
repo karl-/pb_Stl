@@ -37,7 +37,7 @@ namespace Parabox.STL
 				}
 				catch(System.Exception e)
 				{
-					Debug.LogWarning(string.Format("Failed importing mesh at path {0}.\n{1}", path, e.ToString()));
+					UnityEngine.Debug.LogWarning(string.Format("Failed importing mesh at path {0}.\n{1}", path, e.ToString()));
 					return null;
 				}
 			}
@@ -184,9 +184,9 @@ namespace Parabox.STL
 			string[] split = str.Trim().Split(null);
 			Vector3 v = new Vector3();
 
-			v.x = float.Parse(split[0], System.Globalization.CultureInfo.InvariantCulture);
-			v.y = float.Parse(split[1], System.Globalization.CultureInfo.InvariantCulture);
-			v.z = float.Parse(split[2], System.Globalization.CultureInfo.InvariantCulture);
+			float.TryParse(split[0], out v.x);
+			float.TryParse(split[1], out v.y);
+			float.TryParse(split[2], out v.z);
 
 			return v;
 		}
