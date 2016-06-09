@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#pragma warning disable 0219
+
+using UnityEngine;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
@@ -139,7 +141,6 @@ namespace Parabox.STL
 					{
 						case SOLID:
 							continue;
-						break;
 
 						case FACET:
 							f = new Facet();
