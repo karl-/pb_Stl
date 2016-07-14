@@ -33,3 +33,7 @@ Unity's coordinate system is left handed, with Y axis as the vertical.  Other 3d
 ## Contributing
 
 If you would like to submit improvements please include NUnit tests for your changes (and make sure they don't break any existing tests).
+
+## License
+
+Breath easy, it's MIT.
