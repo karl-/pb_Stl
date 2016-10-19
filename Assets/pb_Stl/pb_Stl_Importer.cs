@@ -204,19 +204,44 @@ namespace Parabox.STL
 			if(file.Length < 130)
 				return false;
 
+			var isBinary = false;
+
 			using(FileStream f0 = file.OpenRead())
 			{
 				using(BufferedStream bs0 = new BufferedStream(f0))
 				{
 					for(long i = 0; i < 80; i++)
 					{
-						if(bs0.ReadByte() != 0x0)
-							return false;
+					    var readByte = bs0.ReadByte();
+					    if (readByte == 0x0)
+					    {
+					        isBinary = true;
+					        break;
+					    }
 					}
 				}
 			}
 
-			return true;
+            if (!isBinary)
+            {
+                using (FileStream f0 = file.OpenRead())
+                {
+                    using (BufferedStream bs0 = new BufferedStream(f0))
+                    {
+                        var byteArray = new byte[6];
+
+                        for (var i = 0; i < 6; i++)
+                        {
+                            byteArray[i] = (byte)bs0.ReadByte();
+                        }
+
+                        var text = Encoding.UTF8.GetString(byteArray);
+                        isBinary = text != "solid ";
+                    }
+                }
+            }
+
+			return isBinary;
 		}
 
 		/**
