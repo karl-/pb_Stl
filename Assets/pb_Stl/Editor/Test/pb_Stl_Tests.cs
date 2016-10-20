@@ -76,7 +76,17 @@ public class pb_Stl_Tests
 		Assert.AreEqual(240, meshes[0].vertexCount);
 	}
 
-	private void DoVerifyWriteBinary(string expected_path, GameObject go)
+    [Test]
+    public void TestImportBinaryWithHeaders()
+    {
+        Mesh[] meshes = pb_Stl_Importer.Import(string.Format("{0}/CubedShape_BINARY_H.stl", TEST_MODELS));
+        Assert.IsTrue(meshes != null);
+        Assert.AreEqual(1, meshes.Length);
+        Assert.AreEqual(204, meshes[0].triangles.Length);
+        Assert.AreEqual(204, meshes[0].vertexCount);
+    }
+
+    private void DoVerifyWriteBinary(string expected_path, GameObject go)
 	{
 		string temp_model_path = string.Format("{0}/binary_file.stl", TEMP_FILE_DIR);
 
