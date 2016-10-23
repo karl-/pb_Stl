@@ -36,4 +36,4 @@ If you would like to submit improvements please include NUnit tests for your cha
 
 ## License
 
-Breath easy, it's MIT.
+It's MIT.
