@@ -10,8 +10,8 @@ namespace Parabox.STL
 	 */
 	public class pb_Stl_Menu : Editor
 	{
-		[MenuItem("Assets/Export/STL (Ascii)", true)]
-		[MenuItem("Assets/Export/STL (Binary)", true)]
+		[MenuItem("Assets/Export Model/STL (Ascii)", true)]
+		[MenuItem("Assets/Export Model/STL (Binary)", true)]
 		static bool VerifyExport()
 		{
 			return Selection.transforms.SelectMany(x => x.GetComponentsInChildren<MeshFilter>()).FirstOrDefault(y => y.sharedMesh != null) != null;
@@ -31,7 +31,13 @@ namespace Parabox.STL
 
 		private static void ExportWithFileDialog(GameObject[] gameObjects, FileType type)
 		{
-			string path = EditorUtility.SaveFilePanel("Save Mesh to STL", "", "Mesh", "stl");
+			if(gameObjects == null || gameObjects.Length < 1)
+			{
+				Debug.LogWarning("Attempting to export STL file with no GameObject selected. For reasons that should be obvious this is not allowed.");
+				return;
+			}
+
+			string path = EditorUtility.SaveFilePanel("Save Mesh to STL", "", gameObjects.FirstOrDefault().name, "stl");
 
 			if( pb_Stl_Exporter.Export(path, gameObjects, type) )
 			{
