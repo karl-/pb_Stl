@@ -1,6 +1,7 @@
 # No reason to save project settings since this 
 # doesn't rely on any particular preferecnes
 ProjectSettings
+Properties
 
 /[Ll]ibrary/
 /[Tt]emp/
