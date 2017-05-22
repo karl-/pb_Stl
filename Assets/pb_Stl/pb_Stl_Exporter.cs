@@ -15,14 +15,18 @@ namespace Parabox.STL
 		public static bool Export(string path, GameObject[] gameObjects, FileType type)
 		{
 			Mesh[] meshes = CreateWorldSpaceMeshesWithTransforms(gameObjects.Select(x => x.transform).ToArray());
+			bool success = false;
 
 			if(meshes != null && meshes.Length > 0)
 			{
 				if(!string.IsNullOrEmpty(path))
-					return pb_Stl.WriteFile(path, meshes, type);
+					success = pb_Stl.WriteFile(path, meshes, type);
 			}
 
-			return false;
+			for(int i = 0; meshes != null && i < meshes.Length; i++)
+				GameObject.DestroyImmediate(meshes[i]);
+
+			return success;
 		}
 
 		/**
