@@ -46,9 +46,28 @@ public class pb_Stl_Tests
 			Directory.CreateDirectory(TEMP_FILE_DIR);
 
 		string temp_model_path = string.Format("{0}/multiple.stl", TEMP_FILE_DIR);
-		pb_Stl_Exporter.Export(temp_model_path, new GameObject[] {a, b}, FileType.Binary );
+		pb_Stl_Exporter.Export(temp_model_path, new GameObject[] { a, b }, FileType.Binary );
 
-		Assert.IsTrue(CompareFiles(string.Format("{0}/CompositeCubes_BINARY.stl", TEST_MODELS), temp_model_path));
+		// Comparing binary files isn't great
+		// Assert.IsTrue(CompareFiles(string.Format("{0}/CompositeCubes_BINARY.stl", TEST_MODELS), temp_model_path));
+		Mesh[] expected = pb_Stl_Importer.Import(string.Format("{0}/CompositeCubes_BINARY.stl", TEST_MODELS));
+		Mesh[] results = pb_Stl_Importer.Import(temp_model_path);
+
+		Assert.IsTrue(expected != null);
+		Assert.IsTrue(results != null);
+
+		Assert.IsTrue(expected.Length == 1);
+		Assert.IsTrue(results.Length == 1);
+
+		Assert.AreEqual(expected[0].vertexCount, results[0].vertexCount);
+		Assert.AreEqual(expected[0].triangles, results[0].triangles);
+
+		// Can't use Assert.AreEqual(positions, normals, uvs) because Vec3 comparison is subject to floating point inaccuracy
+		for(int i = 0; i < expected[0].vertexCount; i++)
+		{
+			Assert.Less( Vector3.Distance(expected[0].vertices[i], results[0].vertices[i]), .00001f );
+			Assert.Less( Vector3.Distance(expected[0].normals[i], results[0].normals[i]), .00001f );
+		}
 
 		GameObject.DestroyImmediate(a);
 		GameObject.DestroyImmediate(b);
@@ -99,6 +118,9 @@ public class pb_Stl_Tests
 	private void DoVerifyWriteString(string path, GameObject go)
 	{
 		string ascii = pb_Stl.WriteString(go.GetComponent<MeshFilter>().sharedMesh, true);
+		// Replace Windows line endings with Unix
+		// @todo Does STL spec care about line endings?
+		ascii = ascii.Replace("\r\n", "\n");
 		Assert.AreNotEqual(ascii, null);
 		Assert.AreNotEqual(ascii, "");
 		string expected = File.ReadAllText(path);
