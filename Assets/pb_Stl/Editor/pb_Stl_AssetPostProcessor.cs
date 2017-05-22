@@ -26,7 +26,11 @@ namespace Parabox.STL
 
 				string prefab_path = string.Format("{0}/{1}.prefab", dir, name);
 
+#if UNITY_4_7
+				GameObject prefab_source = (GameObject) AssetDatabase.LoadAssetAtPath(prefab_path, typeof(GameObject));
+#else
 				GameObject prefab_source = AssetDatabase.LoadAssetAtPath<GameObject>(prefab_path);
+#endif
 				GameObject prefab = new GameObject();
 				prefab.name = name;
 				if(prefab_source == null)

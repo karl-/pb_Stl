@@ -47,9 +47,16 @@ namespace Parabox.STL
 				if(full.Contains(Application.dataPath))
 				{
 					string relative = full.Replace(Application.dataPath, "Assets");
+
+#if UNITY_4_7
+					Object o = (Object) AssetDatabase.LoadAssetAtPath(relative, typeof(Object));
+#else
 					Object o = AssetDatabase.LoadAssetAtPath<Object>(relative);
+#endif
+
 					if(o != null)
 						EditorGUIUtility.PingObject(o);
+
 					AssetDatabase.Refresh();
 				}
 			}

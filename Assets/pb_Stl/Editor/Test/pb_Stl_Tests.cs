@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if !UNITY_4_7
+
+using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -159,3 +161,4 @@ public class pb_Stl_Tests
 		return true;
 	}
 }
+#endif

@@ -24,7 +24,7 @@ namespace Parabox.STL
 			}
 
 			for(int i = 0; meshes != null && i < meshes.Length; i++)
-				GameObject.DestroyImmediate(meshes[i]);
+				Object.DestroyImmediate(meshes[i]);
 
 			return success;
 		}
@@ -51,7 +51,7 @@ namespace Parabox.STL
 			// copy all transforms to new root gameobject
 			foreach(Transform t in transforms)
 			{
-				GameObject go = GameObject.Instantiate(t.gameObject);
+				GameObject go = (GameObject) GameObject.Instantiate(t.gameObject);
 				go.transform.SetParent(t.parent, false);
 				go.transform.SetParent(root.transform, true);
 			}
