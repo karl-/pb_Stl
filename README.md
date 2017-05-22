@@ -22,8 +22,11 @@ An STL importer/exporter for Unity.
 
 ## Planned Improvements
 
-- Options to swap model axis on import/export.
-
+- Export window with additional options:
+    - Swap model axis on import/export.
+    - Export as multiple objects or merge (currently always merges).
+    - Generate normals on import (with smoothing or no).
+    
 ## Troubleshooting
 
 #### Model is sideways / horizontal / rotated
