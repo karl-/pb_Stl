@@ -10,7 +10,7 @@ namespace Parabox.STL
 	{
 		private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromPath)
 		{
-			foreach(string path in importedAssets.Where(x => x.EndsWith(".stl")))
+			foreach(string path in importedAssets.Where(x => x.ToLowerInvariant().EndsWith(".stl")))
 			{
 				string dir = Path.GetDirectoryName(path).Replace("\\", "/");
 				string name = Path.GetFileNameWithoutExtension(path);
