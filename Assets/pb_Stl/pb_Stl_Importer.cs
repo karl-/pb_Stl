@@ -63,35 +63,35 @@ namespace Parabox.STL
                     facets = new Facet[facetCount];
 
                     for(uint i = 0; i < facetCount; i++)
-                        facets[i] = br.getFacet();
+                        facets[i] = br.GetFacet();
                 }
             }
 
 			return CreateMeshWithFacets(facets);
 		}
 
-        private static Facet getFacet(this BinaryReader binaryReader)
+        private static Facet GetFacet(this BinaryReader binaryReader)
         {
             Facet facet = new Facet();
-            facet.normal = binaryReader.getVector3();
+            facet.normal = binaryReader.GetVector3();
 
             // maintain counter-clockwise orientation of vertices:
-            facet.a = binaryReader.getVector3();
-            facet.c = binaryReader.getVector3();
-            facet.b = binaryReader.getVector3();
+            facet.a = binaryReader.GetVector3();
+            facet.c = binaryReader.GetVector3();
+            facet.b = binaryReader.GetVector3();
             binaryReader.ReadUInt16(); // padding
           
             return facet;
         }
-        private static Vector3 getVector3(this BinaryReader binaryReader)
+        private static Vector3 GetVector3(this BinaryReader binaryReader)
         {
             Vector3 vector3 = new Vector3();
             for (int i = 0; i < 3; i++)
                 vector3[i] = binaryReader.ReadSingle();
-            return vector3.unityCoordTrafo();
+            return vector3.UnityCoordTrafo();
         }
 
-        private static Vector3 unityCoordTrafo(this Vector3 vector3)
+        private static Vector3 UnityCoordTrafo(this Vector3 vector3)
         {
             return new Vector3(-vector3.y, vector3.z, vector3.x);
         }
@@ -195,7 +195,7 @@ namespace Parabox.STL
 			float.TryParse(split[1], out v.y);
 			float.TryParse(split[2], out v.z);
 
-            return v.unityCoordTrafo(); 
+            return v.UnityCoordTrafo(); 
 		}
 
 		/**
