@@ -63,33 +63,38 @@ namespace Parabox.STL
                     facets = new Facet[facetCount];
 
                     for(uint i = 0; i < facetCount; i++)
-                    {
-                    	facets[i] = new Facet();
-
-                    	facets[i].normal.x = br.ReadSingle();
-                    	facets[i].normal.y = br.ReadSingle();
-                    	facets[i].normal.z = br.ReadSingle();
-
-                    	facets[i].a.x = br.ReadSingle();
-                    	facets[i].a.y = br.ReadSingle();
-                    	facets[i].a.z = br.ReadSingle();
-
-                    	facets[i].b.x = br.ReadSingle();
-                    	facets[i].b.y = br.ReadSingle();
-                    	facets[i].b.z = br.ReadSingle();
-
-                    	facets[i].c.x = br.ReadSingle();
-                    	facets[i].c.y = br.ReadSingle();
-                    	facets[i].c.z = br.ReadSingle();
-
-                    	// padding
-                    	br.ReadUInt16();
-                    }
+                        facets[i] = br.GetFacet();
                 }
             }
 
 			return CreateMeshWithFacets(facets);
 		}
+
+        private static Facet GetFacet(this BinaryReader binaryReader)
+        {
+            Facet facet = new Facet();
+            facet.normal = binaryReader.GetVector3();
+
+            // maintain counter-clockwise orientation of vertices:
+            facet.a = binaryReader.GetVector3();
+            facet.c = binaryReader.GetVector3();
+            facet.b = binaryReader.GetVector3();
+            binaryReader.ReadUInt16(); // padding
+          
+            return facet;
+        }
+        private static Vector3 GetVector3(this BinaryReader binaryReader)
+        {
+            Vector3 vector3 = new Vector3();
+            for (int i = 0; i < 3; i++)
+                vector3[i] = binaryReader.ReadSingle();
+            return vector3.UnityCoordTrafo();
+        }
+
+        private static Vector3 UnityCoordTrafo(this Vector3 vector3)
+        {
+            return new Vector3(-vector3.y, vector3.z, vector3.x);
+        }
 
 		const int SOLID = 1;
 		const int FACET = 2;
@@ -152,10 +157,11 @@ namespace Parabox.STL
 						break;
 
 						case VERTEX:
-							if(vertex == 0) f.a = StringToVec3(line.Replace("vertex ", ""));
-							else if(vertex == 1) f.b = StringToVec3(line.Replace("vertex ", ""));
+                            // maintain counter-clockwise orientation of vertices:
+                            if (vertex == 0) f.a = StringToVec3(line.Replace("vertex ", ""));							
 							else if(vertex == 2) f.c = StringToVec3(line.Replace("vertex ", ""));
-							vertex++;
+                            else if (vertex == 1) f.b = StringToVec3(line.Replace("vertex ", ""));
+                            vertex++;
 						break;
 
 						case ENDLOOP:
@@ -189,7 +195,7 @@ namespace Parabox.STL
 			float.TryParse(split[1], out v.y);
 			float.TryParse(split[2], out v.z);
 
-			return v;
+            return v.UnityCoordTrafo(); 
 		}
 
 		/**
