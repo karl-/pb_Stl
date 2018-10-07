@@ -4,7 +4,7 @@ using UnityEditor.Experimental.AssetImporters;
 using System.IO;
 using System.Linq;
 
-namespace Parabox.Stl
+namespace Parabox.Stl.Editor
 {
     [CustomEditor(typeof(StlImporter))]
     class StlImporterEditor : ScriptedImporterEditor
@@ -12,10 +12,13 @@ namespace Parabox.Stl
         public override void OnInspectorGUI()
         {
             var m_CoordinateSpace = serializedObject.FindProperty("m_CoordinateSpace");
-            var m_UpAxis = serializedObject.FindProperty("m_UpAxis");
+            // todo
+            // var m_UpAxis = serializedObject.FindProperty("m_UpAxis");
+            var m_Smooth = serializedObject.FindProperty("m_Smooth");
 
+            // PropertyField isn't displaying as a enum here, not sure why.
             EditorGUILayout.PropertyField(m_CoordinateSpace);
-            EditorGUILayout.PropertyField(m_UpAxis);
+            EditorGUILayout.PropertyField(m_Smooth);
 
             base.ApplyRevertGUI();
         }

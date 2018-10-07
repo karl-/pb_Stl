@@ -38,7 +38,7 @@ namespace Parabox.Stl
 		/// </summary>
 		/// <param name="path">The path to load STL file from.</param>
 		/// <returns></returns>
-		public static Mesh[] Import(string path, CoordinateSpace space = CoordinateSpace.Right, UpAxis axis = UpAxis.Y)
+		public static Mesh[] Import(string path, CoordinateSpace space = CoordinateSpace.Right, UpAxis axis = UpAxis.Y, bool smooth = false)
 		{
 			IEnumerable<Facet> facets = null;
 
@@ -59,7 +59,10 @@ namespace Parabox.Stl
 				facets = ImportAscii(path);
 			}
 
-			return CreateMeshWithFacets(facets, space, axis);
+			if(smooth)
+				return ImportSmoothNormals(facets, space, axis);
+
+			return ImportHardNormals(facets, space, axis);
 		}
 
 		static IEnumerable<Facet> ImportBinary(string path)
@@ -71,7 +74,8 @@ namespace Parabox.Stl
                 using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
                 {
                     // read header
-                    byte[] header = br.ReadBytes(80);
+                    br.ReadBytes(80);
+
                     uint facetCount = br.ReadUInt32();
                     facets = new Facet[facetCount];
 
@@ -149,7 +153,6 @@ namespace Parabox.Stl
 				while(sr.Peek() > 0 && !exit)
 				{
 					line = sr.ReadLine().Trim();
-					int previousState = state;
 					state = ReadState(line);
 
 					switch(state)
@@ -263,12 +266,123 @@ namespace Parabox.Stl
 			return isBinary;
 		}
 
-		// Create a Unity mesh (left handed coordinates, y up) from a set of facets. If modelCoordinateSpace or modelUpAxis do not
-		// match, they will be converted.
-		static Mesh[] CreateMeshWithFacets(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis)
+		static Mesh[] ImportSmoothNormals(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis)
 		{
 			var facets = faces as Facet[] ?? faces.ToArray();
+			const int maxVertexCount = k_MaxFacetsPerMesh * 3;
+			int triangleCount = facets.Length * 3;
 
+			Dictionary<StlVector3, Vector3> smoothNormals = new Dictionary<StlVector3, Vector3>(triangleCount / 2);
+
+			// In case meshes are split, we need to calculate smooth normals first
+			foreach(var face in faces)
+			{
+				var x = (StlVector3) face.a;
+				var y = (StlVector3) face.b;
+				var z = (StlVector3) face.c;
+				var normal = face.normal;
+
+				if(smoothNormals.ContainsKey(x))
+					smoothNormals[x] += normal;
+				else
+					smoothNormals.Add(x, normal);
+
+				if(smoothNormals.ContainsKey(y))
+					smoothNormals[y] += normal;
+				else
+					smoothNormals.Add(y, normal);
+
+				if(smoothNormals.ContainsKey(z))
+					smoothNormals[z] += normal;
+				else
+					smoothNormals.Add(z, normal);
+			}
+
+			List<Mesh> meshes = new List<Mesh>();
+
+			List<Vector3> pos = new List<Vector3>(System.Math.Min(maxVertexCount, triangleCount));
+			List<Vector3> nrm = new List<Vector3>(System.Math.Min(maxVertexCount, triangleCount));
+			List<int> tri = new List<int>(triangleCount);
+			Dictionary<StlVector3, int> map = new Dictionary<StlVector3, int>();
+			int vertex = 0;
+			Vector3[] points = new Vector3[3];
+
+			foreach(var face in facets)
+			{
+				if(vertex + 3 > maxVertexCount)
+				{
+					var mesh = new Mesh();
+					mesh.vertices = pos.ToArray();
+					mesh.normals = nrm.ToArray();
+					if(modelCoordinateSpace == CoordinateSpace.Right)
+						tri.Reverse();
+					mesh.triangles = tri.ToArray();
+					meshes.Add(mesh);
+
+					vertex = 0;
+
+					pos.Clear();
+					nrm.Clear();
+					tri.Clear();
+					map.Clear();
+				}
+
+				points[0] = face.a;
+				points[1] = face.b;
+				points[2] = face.c;
+
+				for(int i = 0; i < 3; i++)
+				{
+					int index = -1;
+					var hash = (StlVector3) points[i];
+
+					if(!map.TryGetValue(hash, out index))
+					{
+						if(modelCoordinateSpace == CoordinateSpace.Right)
+						{
+							pos.Add(Stl.ToCoordinateSpace(points[i], CoordinateSpace.Left));
+							nrm.Add(Stl.ToCoordinateSpace(smoothNormals[hash].normalized, CoordinateSpace.Left));
+						}
+						else
+						{
+							pos.Add(points[i]);
+							nrm.Add(smoothNormals[hash].normalized);
+						}
+
+						tri.Add(vertex);
+						map.Add(hash, vertex++);
+					}
+					else
+					{
+						tri.Add(index);
+					}
+				}
+			}
+
+			if(vertex > 0)
+			{
+				var mesh = new Mesh();
+				mesh.vertices = pos.ToArray();
+				mesh.normals = nrm.ToArray();
+				if(modelCoordinateSpace == CoordinateSpace.Right)
+					tri.Reverse();
+				mesh.triangles = tri.ToArray();
+				meshes.Add(mesh);
+
+				vertex = 0;
+
+				pos.Clear();
+				nrm.Clear();
+				tri.Clear();
+				map.Clear();
+			}
+
+			return meshes.ToArray();
+		}
+
+		static Mesh[] ImportHardNormals(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis)
+		{
+			var facets = faces as Facet[] ?? faces.ToArray();
 			int faceCount = facets.Length, f = 0;
 			int maxVertexCount = k_MaxFacetsPerMesh * 3;
 			Mesh[] meshes = new Mesh[faceCount / k_MaxFacetsPerMesh + 1];

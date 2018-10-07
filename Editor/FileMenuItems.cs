@@ -3,9 +3,9 @@ using UnityEditor;
 using System.Collections;
 using System.Linq;
 
-namespace Parabox.Stl
+namespace Parabox.Stl.Editor
 {
-	sealed class FileMenuItems : Editor
+	sealed class FileMenuItems : UnityEditor.Editor
 	{
 		[MenuItem("Assets/Export Model/STL (Ascii)", true)]
 		[MenuItem("Assets/Export Model/STL (Binary)", true)]
