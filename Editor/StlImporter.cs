@@ -8,10 +8,16 @@ namespace Parabox.Stl
     [ScriptedImporter(1, "stl")]
     public class StlImporter : ScriptedImporter
     {
+        [SerializeField]
+        CoordinateSpace m_CoordinateSpace;
+
+        [SerializeField]
+        UpAxis m_UpAxis;
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
-            var meshes = Importer.Import(ctx.assetPath);
+            var meshes = Importer.Import(ctx.assetPath, m_CoordinateSpace, m_UpAxis);
 
             if(meshes.Length < 1)
                 return;

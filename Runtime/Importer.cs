@@ -1,24 +1,31 @@
-﻿#pragma warning disable 0219
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 
 namespace Parabox.Stl
 {
-	/**
-	 * Import methods for STL files.
-	 */
+	/// <summary>
+	/// Import mesh assets from an STL file.
+	/// </summary>
 	public static class Importer
 	{
-		const int MAX_FACETS_PER_MESH = 65535 / 3;
+		const int k_MaxFacetsPerMesh = 65535 / 3;
 
-		class Facet
+		struct Facet
 		{
 			public Vector3 normal;
 			public Vector3 a, b, c;
+
+			public Facet(Vector3 normal, Vector3 a, Vector3 b, Vector3 c)
+			{
+				this.normal = normal;
+				this.a = a;
+				this.b = b;
+				this.c = c;
+			}
 
 			public override string ToString()
 			{
@@ -26,16 +33,20 @@ namespace Parabox.Stl
 			}
 		}
 
-		/**
-		 * Import an STL file at path.
-		 */
-		public static Mesh[] Import(string path)
+		/// <summary>
+		/// Import an STL file.
+		/// </summary>
+		/// <param name="path">The path to load STL file from.</param>
+		/// <returns></returns>
+		public static Mesh[] Import(string path, CoordinateSpace space = CoordinateSpace.Right, UpAxis axis = UpAxis.Y)
 		{
+			IEnumerable<Facet> facets = null;
+
 			if( IsBinary(path) )
 			{
 				try
 				{
-					return ImportBinary(path);
+					facets = ImportBinary(path);
 				}
 				catch(System.Exception e)
 				{
@@ -45,11 +56,13 @@ namespace Parabox.Stl
 			}
 			else
 			{
-				return ImportAscii(path);
+				facets = ImportAscii(path);
 			}
+
+			return CreateMeshWithFacets(facets, space, axis);
 		}
 
-		private static Mesh[] ImportBinary(string path)
+		static IEnumerable<Facet> ImportBinary(string path)
 		{
 			Facet[] facets;
 
@@ -67,33 +80,29 @@ namespace Parabox.Stl
                 }
             }
 
-			return CreateMeshWithFacets(facets);
+			return facets;
 		}
 
-        private static Facet GetFacet(this BinaryReader binaryReader)
+        static Facet GetFacet(this BinaryReader binaryReader)
         {
-            Facet facet = new Facet();
-            facet.normal = binaryReader.GetVector3();
+			Facet facet = new Facet(
+				binaryReader.GetVector3(),	// Normal
+				binaryReader.GetVector3(),	// A
+				binaryReader.GetVector3(),	// B
+				binaryReader.GetVector3()	// C
+				);
 
-            // maintain counter-clockwise orientation of vertices:
-            facet.a = binaryReader.GetVector3();
-            facet.c = binaryReader.GetVector3();
-            facet.b = binaryReader.GetVector3();
             binaryReader.ReadUInt16(); // padding
 
             return facet;
         }
-        private static Vector3 GetVector3(this BinaryReader binaryReader)
-        {
-            Vector3 vector3 = new Vector3();
-            for (int i = 0; i < 3; i++)
-                vector3[i] = binaryReader.ReadSingle();
-            return vector3.UnityCoordTrafo();
-        }
 
-        private static Vector3 UnityCoordTrafo(this Vector3 vector3)
+        static Vector3 GetVector3(this BinaryReader binaryReader)
         {
-            return new Vector3(-vector3.y, vector3.z, vector3.x);
+			return new Vector3(
+				binaryReader.ReadSingle(),
+				binaryReader.ReadSingle(),
+				binaryReader.ReadSingle() );
         }
 
 		const int SOLID = 1;
@@ -105,7 +114,7 @@ namespace Parabox.Stl
 		const int ENDSOLID = 7;
 		const int EMPTY = 0;
 
-		private static int ReadState(string line)
+		static int ReadState(string line)
 		{
 			if(line.StartsWith("solid"))
 				return SOLID;
@@ -125,7 +134,7 @@ namespace Parabox.Stl
 				return EMPTY;
 		}
 
-		private static Mesh[] ImportAscii(string path)
+		static IEnumerable<Facet> ImportAscii(string path)
 		{
 			List<Facet> facets = new List<Facet>();
 
@@ -133,7 +142,8 @@ namespace Parabox.Stl
 			{
 				string line;
 				int state = EMPTY, vertex = 0;
-				Facet f = null;
+				Vector3 normal = Vector3.zero;
+				Vector3 a = Vector3.zero, b = Vector3.zero, c = Vector3.zero;
 				bool exit = false;
 
 				while(sr.Peek() > 0 && !exit)
@@ -148,8 +158,7 @@ namespace Parabox.Stl
 							continue;
 
 						case FACET:
-							f = new Facet();
-							f.normal = StringToVec3(line.Replace("facet normal ", ""));
+							normal = StringToVec3(line.Replace("facet normal ", ""));
 						break;
 
 						case OUTER:
@@ -158,9 +167,12 @@ namespace Parabox.Stl
 
 						case VERTEX:
                             // maintain counter-clockwise orientation of vertices:
-                            if (vertex == 0) f.a = StringToVec3(line.Replace("vertex ", ""));
-							else if(vertex == 2) f.c = StringToVec3(line.Replace("vertex ", ""));
-                            else if (vertex == 1) f.b = StringToVec3(line.Replace("vertex ", ""));
+                            if (vertex == 0)
+								a = StringToVec3(line.Replace("vertex ", ""));
+							else if(vertex == 2)
+								c = StringToVec3(line.Replace("vertex ", ""));
+                            else if (vertex == 1)
+								b = StringToVec3(line.Replace("vertex ", ""));
                             vertex++;
 						break;
 
@@ -168,7 +180,7 @@ namespace Parabox.Stl
 						break;
 
 						case ENDFACET:
-							facets.Add(f);
+							facets.Add(new Facet(normal, a, b, c));
 						break;
 
 						case ENDSOLID:
@@ -183,10 +195,10 @@ namespace Parabox.Stl
 				}
 			}
 
-			return CreateMeshWithFacets(facets);
+			return facets;
 		}
 
-		private static Vector3 StringToVec3(string str)
+		static Vector3 StringToVec3(string str)
 		{
 			string[] split = str.Trim().Split(null);
 			Vector3 v = new Vector3();
@@ -195,14 +207,15 @@ namespace Parabox.Stl
 			float.TryParse(split[1], out v.y);
 			float.TryParse(split[2], out v.z);
 
-            return v.UnityCoordTrafo();
+            return v;
 		}
 
-		/**
-		 * Read the first 80 bytes of a file and if they are all 0x0 it's likely
-		 * that this file is binary.
-		 */
-		private static bool IsBinary(string path)
+		/// <summary>
+		/// Determine whether this file is a binary stl format or not.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		static bool IsBinary(string path)
 		{
 			// http://stackoverflow.com/questions/968935/compare-binary-files-in-c-sharp
 			FileInfo file = new FileInfo(path);
@@ -250,17 +263,19 @@ namespace Parabox.Stl
 			return isBinary;
 		}
 
-		/**
-		 * @todo test with > USHORT_MAX vertex count meshes
-		 */
-		private static Mesh[] CreateMeshWithFacets(IList<Facet> facets)
+		// Create a Unity mesh (left handed coordinates, y up) from a set of facets. If modelCoordinateSpace or modelUpAxis do not
+		// match, they will be converted.
+		static Mesh[] CreateMeshWithFacets(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis)
 		{
-			int fl = facets.Count, f = 0, mvc = MAX_FACETS_PER_MESH * 3;
-			Mesh[] meshes = new Mesh[fl / MAX_FACETS_PER_MESH + 1];
+			var facets = faces as Facet[] ?? faces.ToArray();
 
-			for(int i = 0; i < meshes.Length; i++)
+			int faceCount = facets.Length, f = 0;
+			int maxVertexCount = k_MaxFacetsPerMesh * 3;
+			Mesh[] meshes = new Mesh[faceCount / k_MaxFacetsPerMesh + 1];
+
+			for(int meshIndex = 0; meshIndex < meshes.Length; meshIndex++)
 			{
-				int len = System.Math.Min(mvc, (fl - f) * 3);
+				int len = System.Math.Min(maxVertexCount, (faceCount - f) * 3);
 				Vector3[] v = new Vector3[len];
 				Vector3[] n = new Vector3[len];
 				int[] t = new int[len];
@@ -275,17 +290,35 @@ namespace Parabox.Stl
 					n[it+1] = facets[f].normal;
 					n[it+2] = facets[f].normal;
 
-					t[it  ] = it;
+					t[it  ] = it+0;
 					t[it+1] = it+1;
 					t[it+2] = it+2;
 
 					f++;
 				}
 
-				meshes[i] = new Mesh();
-				meshes[i].vertices = v;
-				meshes[i].normals = n;
-				meshes[i].triangles = t;
+				if(modelCoordinateSpace == CoordinateSpace.Right)
+				{
+					for(int i = 0; i < len; i+=3)
+					{
+						v[i+0] = Stl.ToCoordinateSpace(v[i+0], CoordinateSpace.Left);
+						v[i+1] = Stl.ToCoordinateSpace(v[i+1], CoordinateSpace.Left);
+						v[i+2] = Stl.ToCoordinateSpace(v[i+2], CoordinateSpace.Left);
+
+						n[i+0] = Stl.ToCoordinateSpace(n[i+0], CoordinateSpace.Left);
+						n[i+1] = Stl.ToCoordinateSpace(n[i+1], CoordinateSpace.Left);
+						n[i+2] = Stl.ToCoordinateSpace(n[i+2], CoordinateSpace.Left);
+
+						var a = t[i+2];
+						t[i+2] = t[i];
+						t[i] = a;
+					}
+				}
+
+				meshes[meshIndex] = new Mesh();
+				meshes[meshIndex].vertices = v;
+				meshes[meshIndex].normals = n;
+				meshes[meshIndex].triangles = t;
 			}
 
 			return meshes;

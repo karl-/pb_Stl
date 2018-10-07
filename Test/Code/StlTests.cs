@@ -111,7 +111,7 @@ namespace Parabox.Stl.Test
 		{
 			string temp_model_path = string.Format("{0}/binary_file.stl", k_TempDir);
 
-			Assert.IsTrue(Stl.WriteFile(temp_model_path, go.GetComponent<MeshFilter>().sharedMesh, FileType.Binary));
+			Assert.IsTrue(Exporter.WriteFile(temp_model_path, go.GetComponent<MeshFilter>().sharedMesh, FileType.Binary));
 			Assert.IsTrue(CompareFiles(temp_model_path, expected_path));
 
 			GameObject.DestroyImmediate(go);
@@ -119,7 +119,7 @@ namespace Parabox.Stl.Test
 
 		private void DoVerifyWriteString(string path, GameObject go)
 		{
-			string ascii = Stl.WriteString(go.GetComponent<MeshFilter>().sharedMesh, true);
+			string ascii = Exporter.WriteString(go.GetComponent<MeshFilter>().sharedMesh, true);
 			// Replace Windows line endings with Unix
 			// @todo Does STL spec care about line endings?
 			ascii = ascii.Replace("\r\n", "\n");
