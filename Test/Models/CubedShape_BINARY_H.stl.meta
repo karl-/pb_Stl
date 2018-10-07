@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: f337606b81ef8cb4bad80f9510b577cc
+ScriptedImporter:
+  fileIDToRecycleName:
+    100000: CubedShape_BINARY_H/CubedShape_BINARY_H
+    400000: CubedShape_BINARY_H/CubedShape_BINARY_H/Transform
+    2300000: CubedShape_BINARY_H/CubedShape_BINARY_H/MeshRenderer
+    3300000: CubedShape_BINARY_H/CubedShape_BINARY_H/MeshFilter
+    4300002: Mesh-CubedShape_BINARY_H
+    6500000: CubedShape_BINARY_H/CubedShape_BINARY_H/BoxCollider
+    100100000: CubedShape_BINARY_H
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

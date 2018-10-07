@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 5afb0dd66a70740eb9cc2b519ac03634
+ScriptedImporter:
+  fileIDToRecycleName:
+    100002: text/text
+    400002: text/text/Transform
+    2300002: text/text/MeshRenderer
+    3300002: text/text/MeshFilter
+    4300002: Mesh-text
+    6500002: text/text/BoxCollider
+    100100002: text
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

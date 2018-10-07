@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 73a608c2c5a9c7d479832fe10de39399
+ScriptedImporter:
+  fileIDToRecycleName:
+    100000: Cylinder_ASCII_RH/Cylinder_ASCII_RH
+    400000: Cylinder_ASCII_RH/Cylinder_ASCII_RH/Transform
+    2300000: Cylinder_ASCII_RH/Cylinder_ASCII_RH/MeshRenderer
+    3300000: Cylinder_ASCII_RH/Cylinder_ASCII_RH/MeshFilter
+    4300002: Mesh-Cylinder_ASCII_RH
+    6500000: Cylinder_ASCII_RH/Cylinder_ASCII_RH/BoxCollider
+    100100000: Cylinder_ASCII_RH
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: d8aa83bbb493a436fadea6029a3dadc6
+ScriptedImporter:
+  fileIDToRecycleName:
+    100002: CompositeCubes_BINARY/CompositeCubes_BINARY
+    400002: CompositeCubes_BINARY/CompositeCubes_BINARY/Transform
+    2300002: CompositeCubes_BINARY/CompositeCubes_BINARY/MeshRenderer
+    3300002: CompositeCubes_BINARY/CompositeCubes_BINARY/MeshFilter
+    4300002: Mesh-CompositeCubes_BINARY
+    6500002: CompositeCubes_BINARY/CompositeCubes_BINARY/BoxCollider
+    100100002: CompositeCubes_BINARY
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

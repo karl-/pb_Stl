@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4fc9398ce51419148861e2bfa3aff69c
+ScriptedImporter:
+  fileIDToRecycleName:
+    100002: Cylinder_BINARY_RH/Cylinder_BINARY_RH
+    400002: Cylinder_BINARY_RH/Cylinder_BINARY_RH/Transform
+    2300002: Cylinder_BINARY_RH/Cylinder_BINARY_RH/MeshRenderer
+    3300002: Cylinder_BINARY_RH/Cylinder_BINARY_RH/MeshFilter
+    4300002: Mesh-Cylinder_BINARY_RH
+    6500002: Cylinder_BINARY_RH/Cylinder_BINARY_RH/BoxCollider
+    100100002: Cylinder_BINARY_RH
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

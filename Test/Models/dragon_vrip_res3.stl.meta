@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: 60941d2625d7442169729004f6af245c
+ScriptedImporter:
+  fileIDToRecycleName:
+    100000: dragon_vrip_res3/dragon_vrip_res3
+    100008: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(0)
+    100010: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(1)
+    100012: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(2)
+    400000: dragon_vrip_res3/dragon_vrip_res3/Transform
+    400008: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(0)/Transform
+    400010: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(1)/Transform
+    400012: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(2)/Transform
+    2300000: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(0)/MeshRenderer
+    2300008: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(1)/MeshRenderer
+    2300010: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(2)/MeshRenderer
+    3300000: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(0)/MeshFilter
+    3300008: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(1)/MeshFilter
+    3300010: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(2)/MeshFilter
+    4300006: Mesh-dragon_vrip_res3(0)
+    4300008: Mesh-dragon_vrip_res3(1)
+    4300010: Mesh-dragon_vrip_res3(2)
+    6500000: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(0)/BoxCollider
+    6500008: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(1)/BoxCollider
+    6500010: dragon_vrip_res3/dragon_vrip_res3/dragon_vrip_res3(2)/BoxCollider
+    100100000: dragon_vrip_res3
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

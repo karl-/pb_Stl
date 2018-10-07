@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 559d6145bbf680b4a83d86e0d3efbb19
+ScriptedImporter:
+  fileIDToRecycleName:
+    100002: Sphere_ASCII_RH/Sphere_ASCII_RH
+    400002: Sphere_ASCII_RH/Sphere_ASCII_RH/Transform
+    2300002: Sphere_ASCII_RH/Sphere_ASCII_RH/MeshRenderer
+    3300002: Sphere_ASCII_RH/Sphere_ASCII_RH/MeshFilter
+    4300002: Mesh-Sphere_ASCII_RH
+    6500002: Sphere_ASCII_RH/Sphere_ASCII_RH/BoxCollider
+    100100002: Sphere_ASCII_RH
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}

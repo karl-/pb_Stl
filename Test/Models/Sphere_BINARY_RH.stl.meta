@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 9820543fe0cfae64fa8e0ef8c0d52628
+ScriptedImporter:
+  fileIDToRecycleName:
+    100002: Sphere_BINARY_RH/Sphere_BINARY_RH
+    400002: Sphere_BINARY_RH/Sphere_BINARY_RH/Transform
+    2300002: Sphere_BINARY_RH/Sphere_BINARY_RH/MeshRenderer
+    3300002: Sphere_BINARY_RH/Sphere_BINARY_RH/MeshFilter
+    4300002: Mesh-Sphere_BINARY_RH
+    6500002: Sphere_BINARY_RH/Sphere_BINARY_RH/BoxCollider
+    100100002: Sphere_BINARY_RH
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {instanceID: 0}
