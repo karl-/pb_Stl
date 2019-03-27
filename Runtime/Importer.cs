@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using System.Text;
-using System.Collections;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
+using UnityEngine.Rendering;
 
 namespace Parabox.Stl
 {
@@ -12,7 +13,8 @@ namespace Parabox.Stl
 	/// </summary>
 	public static class Importer
 	{
-		const int k_MaxFacetsPerMesh = 65535 / 3;
+        const int MaxFacetsPerMesh16 = UInt16.MaxValue / 3;
+        const int MaxFacetsPerMesh32 = int.MaxValue / 3;
 
 		struct Facet
 		{
@@ -38,7 +40,7 @@ namespace Parabox.Stl
 		/// </summary>
 		/// <param name="path">The path to load STL file from.</param>
 		/// <returns></returns>
-		public static Mesh[] Import(string path, CoordinateSpace space = CoordinateSpace.Right, UpAxis axis = UpAxis.Y, bool smooth = false)
+		public static Mesh[] Import(string path, CoordinateSpace space = CoordinateSpace.Right, UpAxis axis = UpAxis.Y, bool smooth = false, IndexFormat indexFormat = IndexFormat.UInt16)
 		{
 			IEnumerable<Facet> facets = null;
 
@@ -60,9 +62,9 @@ namespace Parabox.Stl
 			}
 
 			if(smooth)
-				return ImportSmoothNormals(facets, space, axis);
+				return ImportSmoothNormals(facets, space, axis, indexFormat);
 
-			return ImportHardNormals(facets, space, axis);
+			return ImportHardNormals(facets, space, axis, indexFormat);
 		}
 
 		static IEnumerable<Facet> ImportBinary(string path)
@@ -266,10 +268,10 @@ namespace Parabox.Stl
 			return isBinary;
 		}
 
-		static Mesh[] ImportSmoothNormals(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis)
+		static Mesh[] ImportSmoothNormals(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis, IndexFormat indexFormat)
 		{
 			var facets = faces as Facet[] ?? faces.ToArray();
-			const int maxVertexCount = k_MaxFacetsPerMesh * 3;
+			int maxVertexCount = indexFormat == IndexFormat.UInt32 ? MaxFacetsPerMesh32 * 3 : MaxFacetsPerMesh16 * 3;
 			int triangleCount = facets.Length * 3;
 
 			Dictionary<StlVector3, Vector3> smoothNormals = new Dictionary<StlVector3, Vector3>(triangleCount / 2);
@@ -300,8 +302,8 @@ namespace Parabox.Stl
 
 			List<Mesh> meshes = new List<Mesh>();
 
-			List<Vector3> pos = new List<Vector3>(System.Math.Min(maxVertexCount, triangleCount));
-			List<Vector3> nrm = new List<Vector3>(System.Math.Min(maxVertexCount, triangleCount));
+			List<Vector3> pos = new List<Vector3>(Math.Min(maxVertexCount, triangleCount));
+			List<Vector3> nrm = new List<Vector3>(Math.Min(maxVertexCount, triangleCount));
 			List<int> tri = new List<int>(triangleCount);
 			Dictionary<StlVector3, int> map = new Dictionary<StlVector3, int>();
 			int vertex = 0;
@@ -311,10 +313,13 @@ namespace Parabox.Stl
 			{
 				if(vertex + 3 > maxVertexCount)
 				{
-					var mesh = new Mesh();
-					mesh.vertices = pos.ToArray();
-					mesh.normals = nrm.ToArray();
-					if(modelCoordinateSpace == CoordinateSpace.Right)
+                    var mesh = new Mesh
+                    {
+                        vertices = pos.ToArray(),
+                        normals = nrm.ToArray(),
+                        indexFormat = indexFormat
+                    };
+                    if(modelCoordinateSpace == CoordinateSpace.Right)
 						tri.Reverse();
 					mesh.triangles = tri.ToArray();
 					meshes.Add(mesh);
@@ -361,10 +366,13 @@ namespace Parabox.Stl
 
 			if(vertex > 0)
 			{
-				var mesh = new Mesh();
-				mesh.vertices = pos.ToArray();
-				mesh.normals = nrm.ToArray();
-				if(modelCoordinateSpace == CoordinateSpace.Right)
+                var mesh = new Mesh
+                {
+                    vertices = pos.ToArray(),
+                    normals = nrm.ToArray(),
+                    indexFormat = indexFormat
+                };
+                if(modelCoordinateSpace == CoordinateSpace.Right)
 					tri.Reverse();
 				mesh.triangles = tri.ToArray();
 				meshes.Add(mesh);
@@ -380,12 +388,13 @@ namespace Parabox.Stl
 			return meshes.ToArray();
 		}
 
-		static Mesh[] ImportHardNormals(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis)
+		static Mesh[] ImportHardNormals(IEnumerable<Facet> faces, CoordinateSpace modelCoordinateSpace, UpAxis modelUpAxis, IndexFormat indexFormat)
 		{
 			var facets = faces as Facet[] ?? faces.ToArray();
 			int faceCount = facets.Length, f = 0;
-			int maxVertexCount = k_MaxFacetsPerMesh * 3;
-			Mesh[] meshes = new Mesh[faceCount / k_MaxFacetsPerMesh + 1];
+            int maxFacetsPerMesh = indexFormat == IndexFormat.UInt32 ? MaxFacetsPerMesh32 : MaxFacetsPerMesh16;
+            int maxVertexCount = maxFacetsPerMesh * 3;
+			Mesh[] meshes = new Mesh[faceCount / maxFacetsPerMesh + 1];
 
 			for(int meshIndex = 0; meshIndex < meshes.Length; meshIndex++)
 			{
@@ -429,11 +438,14 @@ namespace Parabox.Stl
 					}
 				}
 
-				meshes[meshIndex] = new Mesh();
-				meshes[meshIndex].vertices = v;
-				meshes[meshIndex].normals = n;
-				meshes[meshIndex].triangles = t;
-			}
+                meshes[meshIndex] = new Mesh
+                {
+                    vertices = v,
+                    normals = n,
+                    triangles = t,
+                    indexFormat = indexFormat
+                };
+            }
 
 			return meshes;
 		}
