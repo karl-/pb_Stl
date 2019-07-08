@@ -6,6 +6,15 @@ An STL importer/exporter for Unity.
 
 ![stanford_dragon](stanford_dragon.png)
 
+## Install
+
+1. In the `Packages` directory of your Unity project, `git clone https://github.com/karl-/pb_Stl.git co.parabox.stl`
+
+or
+
+1. Open `Packages/manifest.json`
+1. Add `"co.parabox.stl":"https://github.com/karl-/pb_Stl.git"` to the `"dependencies"` list
+
 ## Quick Start
 
 1. Select a `GameObject` in the Scene View with a `MeshFilter` and valid `Mesh`.
