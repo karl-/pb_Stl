@@ -205,7 +205,7 @@ namespace Parabox.Stl
 
 		static Vector3 StringToVec3(string str)
 		{
-			string[] split = str.Trim().Split(null);
+			string[] split = str.Trim().Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
 			Vector3 v = new Vector3();
 
 			float.TryParse(split[0], out v.x);
