@@ -83,6 +83,7 @@ namespace Parabox.Stl
 
 				Mesh m = new Mesh();
 
+				m.indexFormat = mfs[i].sharedMesh.indexFormat;
 				m.name = mfs[i].name;
 				m.vertices = v;
 				m.normals = n;
